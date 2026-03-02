@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -25,9 +25,9 @@
     <h1 id="heroTitle">טוען...</h1>
     <p class="subtitle" id="heroSubtitle"></p>
     <div class="hero-meta">
-      <span id="heroDate">📅 טוען...</span>
-      <span>📊 ניתוח רב-שכבתי</span>
-      <span>🔒 מסווג</span>
+      <span id="heroDate">טוען...</span>
+      <span>ניתוח רב-שכבתי</span>
+      <span>מסווג</span>
     </div>
   </header>
 
@@ -70,20 +70,19 @@
       document.getElementById('heroTitle').textContent = data.title;
       document.getElementById('heroSubtitle').textContent =
         'ניתוח מקיף של הכוחות הגיאו-פוליטיים, הכלכליים והטכנולוגיים המעצבים את הסדר העולמי';
-      document.getElementById('heroDate').textContent = '📅 ' + data.date;
+      document.getElementById('heroDate').textContent = '' + data.date;
 
-      // ===== Build TOC =====
-      const tocList = document.getElementById('tocList');
-      data.chapters.forEach((part, i) => {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = '#' + part.id;
-        a.textContent = getShortPartName(i);
-        li.appendChild(a);
-        tocList.appendChild(li);
-      });
-
-      function getShortPartName(index) {
+        // ===== Build TOC =====
+        const tocList = document.getElementById('tocList');
+        data.chapters.forEach((part, i) => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          const partId = 'chapter-' + (part.chapterNumber || (i + 1));
+          a.href = '#' + partId;
+          a.textContent = getShortPartName(i);
+          li.appendChild(a);
+          tocList.appendChild(li);
+        });      function getShortPartName(index) {
         const names = [
           'שאגת הארי',
           'ניהול הכאוס',
@@ -99,9 +98,10 @@
       let html = '';
 
       data.chapters.forEach((part, partIndex) => {
+          const partId = 'chapter-' + (part.chapterNumber || (partIndex + 1));
         // Part header
         html += `
-          <div class="part-header fade-in" id="${part.id}">
+          <div class="part-header fade-in" id="${partId}">
             <div class="part-number">חלק ${partIndex + 1} מתוך ${data.chapters.length}</div>
             <h2>${escapeHtml(part.chapterTitle)}</h2>
             ${part.chapterIntro ? `<p class="part-intro">${escapeHtml(part.chapterIntro)}</p>` : ''}
