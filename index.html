@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>דו"ח אסטרטגי: "שאגת הארי" והסדר העולמי החדש</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Assistant:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Hero Section -->
+  <header class="hero" id="top">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      <span>מסמך מחקר אסטרטגי</span>
+    </div>
+    <h1 id="heroTitle">טוען...</h1>
+    <p class="subtitle" id="heroSubtitle"></p>
+    <div class="hero-meta">
+      <span id="heroDate">📅 טוען...</span>
+      <span>📊 ניתוח רב-שכבתי</span>
+      <span>🔒 מסווג</span>
+    </div>
+  </header>
+
+  <!-- Table of Contents Navigation -->
+  <nav class="toc-nav" id="tocNav">
+    <ul id="tocList"></ul>
+  </nav>
+
+  <!-- Main Report Content -->
+  <main class="report-container" id="reportContent">
+    <!-- Content will be dynamically rendered here -->
+  </main>
+
+  <!-- Footer -->
+  <footer class="report-footer">
+    <div class="footer-line">מסמך מחקר אסטרטגי | כל הזכויות שמורות</div>
+    <div class="footer-line">נוצר לצורכי ניתוח בלבד</div>
+  </footer>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" title="חזור למעלה">↑</button>
+
+  <script>
+    (async function() {
+      // ===== Load JSON Data =====
+      let data;
+      try {
+        const response = await fetch('data.json');
+        const json = await response.json();
+        data = json.research_report || json.report;
+      } catch (err) {
+        console.error('Error loading data:', err);
+        document.getElementById('reportContent').innerHTML =
+          '<p style="text-align:center;color:#f87171;padding:4rem;">שגיאה בטעינת הנתונים. ודא שקובץ data.json נמצא באותה תיקייה.</p>';
+        document.getElementById('loadingScreen').classList.add('hidden');
+        return;
+      }
+
+      // ===== Populate Hero =====
+      document.getElementById('heroTitle').textContent = data.title;
+      document.getElementById('heroSubtitle').textContent =
+        'ניתוח מקיף של הכוחות הגיאו-פוליטיים, הכלכליים והטכנולוגיים המעצבים את הסדר העולמי';
+      document.getElementById('heroDate').textContent = '📅 ' + data.date;
+
+      // ===== Build TOC =====
+      const tocList = document.getElementById('tocList');
+      data.chapters.forEach((part, i) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '#' + part.id;
+        a.textContent = getShortPartName(i);
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      function getShortPartName(index) {
+        const names = [
+          'שאגת הארי',
+          'ניהול הכאוס',
+          'AI כגנרל',
+          'מדריך הישרדות',
+          'פרוטוקול ריבוני'
+        ];
+        return names[index] || 'חלק ' + (index + 1);
+      }
+
+      // ===== Render Report =====
+      const container = document.getElementById('reportContent');
+      let html = '';
+
+      data.chapters.forEach((part, partIndex) => {
+        // Part header
+        html += `
+          <div class="part-header fade-in" id="${part.id}">
+            <div class="part-number">חלק ${partIndex + 1} מתוך ${data.chapters.length}</div>
+            <h2>${escapeHtml(part.chapterTitle)}</h2>
+            ${part.chapterIntro ? `<p class="part-intro">${escapeHtml(part.chapterIntro)}</p>` : ''}
+          </div>
+        `;
+
+        // Sections
+        part.sections.forEach(section => {
+          if (section.isSummary) {
+            html += renderSummary(section);
+          } else {
+            html += renderSection(section);
+          }
+        });
+      });
+
+      container.innerHTML = html;
+
+      // ===== Render Helpers =====
+      function renderSection(s) {
+        let out = `<div class="section-card fade-in" id="${s.id}">`;
+
+        if (s.number) {
+          out += `<div class="section-number">${s.number}</div>`;
+        }
+        out += `<h3>${escapeHtml(s.title)}</h3>`;
+
+        if (s.intro) {
+          out += `<div class="section-intro">${escapeHtml(s.intro)}</div>`;
+        }
+
+        // Bullets
+        if (s.bullets && s.bullets.length) {
+          out += '<div class="bullet-list">';
+          s.bullets.forEach(b => {
+            out += `<div class="bullet-item">`;
+            if (b.label) {
+              out += `<div class="bullet-label">${escapeHtml(b.label)}</div>`;
+            }
+            out += `<div class="bullet-text">${escapeHtml(b.text)}</div>`;
+            out += '</div>';
+          });
+          out += '</div>';
+        }
+
+        // Table
+        if (s.table) {
+          out += renderTable(s.table);
+        }
+
+        // Categories
+        if (s.categories) {
+          out += '<div class="categories-grid">';
+          s.categories.forEach(cat => {
+            out += `<div class="category-card">`;
+            out += `<div class="category-name">${escapeHtml(cat.name)}</div>`;
+            out += '<ul class="category-items">';
+            cat.items.forEach(item => {
+              out += `<li>${escapeHtml(item)}</li>`;
+            });
+            out += '</ul></div>';
+          });
+          out += '</div>';
+        }
+
+        // Prohibitions
+        if (s.prohibitions) {
+          s.prohibitions.forEach(group => {
+            out += '<div class="prohibition-group">';
+            out += `<div class="prohibition-title">${escapeHtml(group.category)}</div>`;
+            out += '<ul class="prohibition-items">';
+            group.items.forEach(item => {
+              out += `<li>${escapeHtml(item)}</li>`;
+            });
+            out += '</ul></div>';
+          });
+        }
+
+        // Paragraphs
+        if (s.paragraphs) {
+          out += '<div class="paragraphs">';
+          s.paragraphs.forEach(p => {
+            out += `<p>${escapeHtml(p)}</p>`;
+          });
+          out += '</div>';
+        }
+
+        // Formula
+        if (s.formula) {
+          out += renderFormula(s.formula);
+        }
+
+        // Timeline
+        if (s.timeline) {
+          out += renderTimeline(s.timeline);
+        }
+
+        // Conclusion
+        if (s.conclusion) {
+          out += `<div class="section-conclusion">${escapeHtml(s.conclusion)}</div>`;
+        }
+
+        out += '</div>';
+        return out;
+      }
+
+      function renderSummary(s) {
+        let out = `<div class="summary-card fade-in" id="${s.id}">`;
+        out += `<h3>📌 ${escapeHtml(s.title)}</h3>`;
+
+        if (s.paragraphs) {
+          s.paragraphs.forEach(p => {
+            out += `<p>${escapeHtml(p)}</p>`;
+          });
+        }
+
+        if (s.timeline) {
+          out += renderTimeline(s.timeline);
+        }
+
+        out += '</div>';
+        return out;
+      }
+
+      function renderTable(table) {
+        let out = '<div class="table-wrapper"><table class="data-table">';
+        out += '<thead><tr>';
+        table.headers.forEach(h => {
+          out += `<th>${escapeHtml(h)}</th>`;
+        });
+        out += '</tr></thead><tbody>';
+        table.rows.forEach(row => {
+          out += '<tr>';
+          row.forEach(cell => {
+            out += `<td>${escapeHtml(cell)}</td>`;
+          });
+          out += '</tr>';
+        });
+        out += '</tbody></table></div>';
+        return out;
+      }
+
+      function renderFormula(f) {
+        let out = '<div class="formula-block">';
+        out += `<div class="formula-equation">${escapeHtml(f.equation)}</div>`;
+        out += '<div class="formula-vars">';
+        f.variables.forEach(v => {
+          out += `<div class="formula-var">
+            <span class="var-symbol">${escapeHtml(v.symbol)}</span>
+            <span class="var-meaning">— ${escapeHtml(v.meaning)}</span>
+          </div>`;
+        });
+        out += '</div></div>';
+        return out;
+      }
+
+      function renderTimeline(items) {
+        let out = '<div class="timeline">';
+        items.forEach(item => {
+          out += `<div class="timeline-item">
+            <div class="timeline-range">${escapeHtml(item.range)}</div>
+            <div class="timeline-text">${escapeHtml(item.text)}</div>
+          </div>`;
+        });
+        out += '</div>';
+        return out;
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // ===== Intersection Observer for Animations =====
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+      document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+      // ===== Active TOC Highlight =====
+      const partHeaders = document.querySelectorAll('.part-header');
+      const tocLinks = document.querySelectorAll('.toc-nav a');
+
+      const tocObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            tocLinks.forEach(link => {
+              link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+            });
+          }
+        });
+      }, { threshold: 0.3, rootMargin: '-80px 0px -60% 0px' });
+
+      partHeaders.forEach(header => tocObserver.observe(header));
+
+      // ===== Back to Top =====
+      const backToTopBtn = document.getElementById('backToTop');
+      window.addEventListener('scroll', () => {
+        backToTopBtn.classList.toggle('visible', window.scrollY > 500);
+      });
+      backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      // ===== Hide Loading Screen =====
+      setTimeout(() => {
+        document.getElementById('loadingScreen').classList.add('hidden');
+      }, 400);
+
+    })();
+  </script>
+</body>
+</html>
